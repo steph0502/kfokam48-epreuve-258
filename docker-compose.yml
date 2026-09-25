@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: kfokam48
       POSTGRES_PASSWORD: kfokam48
     ports:
-      - "5432:5432"
+      - "5436:5432"
     volumes:
       - kfokam48-pgdata:/var/lib/postgresql/data
     healthcheck:
