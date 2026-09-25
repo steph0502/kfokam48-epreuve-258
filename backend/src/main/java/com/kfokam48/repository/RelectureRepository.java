@@ -18,4 +18,10 @@ public interface RelectureRepository extends JpaRepository<RelectureJpa, Long> {
     List<RelectureJpa> findByRelecteurId(Long relecteurId);
 
     List<RelectureJpa> findByRelecteurIdAndRendueAtIsNull(Long relecteurId);
+
+    /** Tableau (Q16) : combien de relectures l'étudiant doit encore faire. */
+    long countByRelecteurIdAndRendueAtIsNull(Long relecteurId);
+
+    /** La relecture d'un exercice — unique par RG6. */
+    Optional<RelectureJpa> findByExerciceId(Long exerciceId);
 }

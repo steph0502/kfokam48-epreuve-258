@@ -12,4 +12,7 @@ public interface PresenceRepository extends JpaRepository<PresenceJpa, Long> {
 
     /** RG6/RG7 : les présents de la session, parmi lesquels choisir le relecteur. */
     List<PresenceJpa> findBySessionId(Long sessionId);
+
+    /** Tableau (Q16) : nombre de présences d'un étudiant, toutes sessions confondues. */
+    long countByEtudiantId(Long etudiantId);
 }
