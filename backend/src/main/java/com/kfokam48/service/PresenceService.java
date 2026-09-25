@@ -8,6 +8,7 @@ import com.kfokam48.repository.PresenceRepository;
 import com.kfokam48.repository.SessionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -17,6 +18,7 @@ import java.time.Instant;
  * RG1 — code expiré 15 minutes après l'ouverture (410) ;
  * RG2 — pas de présence après la clôture de la session (Q3) ;
  * RG16 — une seule présence par étudiant et par session (409).
+ * Chaque nouvelle présence retente l'assignation des exercices EN_ATTENTE (RG14).
  */
 @Service
 public class PresenceService {
@@ -24,16 +26,19 @@ public class PresenceService {
     private final SessionRepository sessions;
     private final EtudiantRepository etudiants;
     private final PresenceRepository presences;
+    private final ExerciceService exerciceService;
     private final Clock clock;
 
     public PresenceService(SessionRepository sessions, EtudiantRepository etudiants,
-                           PresenceRepository presences, Clock clock) {
+                           PresenceRepository presences, ExerciceService exerciceService, Clock clock) {
         this.sessions = sessions;
         this.etudiants = etudiants;
         this.presences = presences;
+        this.exerciceService = exerciceService;
         this.clock = clock;
     }
 
+    @Transactional
     public PresenceJpa marquer(String code, Long etudiantId) {
         if (!etudiants.existsById(etudiantId)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "ETUDIANT_INCONNU",
@@ -56,6 +61,10 @@ public class PresenceService {
             throw new ApiException(HttpStatus.CONFLICT, "DEJA_PRESENT",
                     "Cet étudiant a déjà marqué sa présence pour cette session (RG16).");
         }
-        return presences.save(new PresenceJpa(session.getId(), etudiantId, PresenceJpa.Source.ETUDIANT, maintenant));
+        PresenceJpa presence = presences.save(
+                new PresenceJpa(session.getId(), etudiantId, PresenceJpa.Source.ETUDIANT, maintenant));
+        // RG14 : cette nouvelle présence peut débloquer des exercices EN_ATTENTE.
+        exerciceService.retenterAssignations(session.getId());
+        return presence;
     }
 }

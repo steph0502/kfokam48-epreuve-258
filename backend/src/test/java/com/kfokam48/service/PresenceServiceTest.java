@@ -39,16 +39,18 @@ class PresenceServiceTest {
     private SessionRepository sessions;
     private EtudiantRepository etudiants;
     private PresenceRepository presences;
+    private ExerciceService exerciceService;
 
     @BeforeEach
     void setUp() {
         sessions = mock(SessionRepository.class);
         etudiants = mock(EtudiantRepository.class);
         presences = mock(PresenceRepository.class);
+        exerciceService = mock(ExerciceService.class);
     }
 
     private PresenceService service(Clock horloge) {
-        return new PresenceService(sessions, etudiants, presences, horloge);
+        return new PresenceService(sessions, etudiants, presences, exerciceService, horloge);
     }
 
     private SessionJpa sessionValable() {
@@ -106,7 +108,7 @@ class PresenceServiceTest {
     }
 
     @Test
-    void code_encore_valable_a_la_seconde_exacte_d_expiration_RG1() {
+    void nominal_201_source_etudiant() {
         SessionJpa session = sessionValable();
         when(presences.save(any())).thenAnswer(inv -> inv.getArgument(0));
         Clock aLaLimite = Clock.fixed(EXPIRATION, ZoneOffset.UTC);
@@ -117,6 +119,8 @@ class PresenceServiceTest {
         assertThat(presence.getEtudiantId()).isEqualTo(5L);
         assertThat(presence.getSource()).isEqualTo("ETUDIANT");
         assertThat(presence.getCreeAt()).isEqualTo(EXPIRATION);
+        // RG14 : une présence déclenche la retentée d'assignation de sa session.
+        verify(exerciceService).retenterAssignations(session.getId());
     }
 
     @Test
