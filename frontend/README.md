@@ -16,7 +16,7 @@ http://localhost:8080 (variable `NEXT_PUBLIC_API_URL` pour surcharger).
 
 ## Structure
 
-- `app/` — pages (routing par fichier) : `/` accueil, `/formateur`, `/etudiant`
+- `app/` — pages (routing par fichier) : `/` accueil, `/formateur`, `/etudiant`, `/relecteur`
 - `lib/api/` — **couche API dédiée (F3)** : client HTTP unique, erreurs
   normalisées `{code, message}`, endpoints typés alignés sur `api/contrat.yaml`.
   Aucun `fetch` en dehors de `lib/api/`, aucune règle métier dupliquée :
