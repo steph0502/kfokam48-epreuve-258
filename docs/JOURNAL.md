@@ -34,13 +34,13 @@ Chaque entrée répond aux trois mêmes questions :
 
 ## Étape 3 — Enveloppe
 
-**Fait :**
+**Fait :** issue #25 créée avant le correctif ; test d’intégration reproduisant le rollback de présence sous concurrence, puis verrou pessimiste de session et suite backend de l’étape 2 vérifiée. Issue #26 créée pour le Must tardif : deux relecteurs distincts par exercice, note provisoire après un avis, moyenne après deux. Migration Flyway V3 conserve chaque ancienne affectation comme relecteur 1. API, CDC et diagrammes mis à jour ; écrans étudiant, formateur et relecteur intégrés au design local existant.
 
-**Bloqué :**
+**Bloqué :** un test a révélé une liste non modifiable pendant la seconde affectation ; corrigé avant validation. Vérification finale : suite backend verte et build frontend Next.js vert.
 
-**IA :**
+**IA :** l’IA a assisté le diagnostic du défaut de concurrence, l’implémentation, les tests et la mise à jour documentaire. Vérifié avec le test concurrent qui échouait avant correctif, les tests d’intégration double avis et conservation de migration, `mvn test` (61 tests, 0 échec) et `npm run build`.
 
-**Ce que j'ai sorti du périmètre pour absorber le changement, et pourquoi :**
+**Ce que j'ai sorti du périmètre pour absorber le changement, et pourquoi :** EF12 / issue #11 reste ouverte et différée, priorité Could. La capacité a été réservée au Must tardif des deux relecteurs et des notes provisoires.
 
 ---
 
