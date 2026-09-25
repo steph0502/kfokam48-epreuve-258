@@ -21,6 +21,13 @@ Routing par fichier intégré, rendu hybride SSR/CSR et un seul outil de build :
 le trio d'écrans (formateur, étudiant, relecteur) s'assemble vite sans
 configuration de routing ni de bundler.
 
-## Démarrage
+## Démarrage (v0.1)
 
-À compléter à l'étape 4 (testé depuis un clone vierge).
+1. `docker compose up -d` — base PostgreSQL
+2. `cd backend && ./mvnw spring-boot:run` — API sur http://localhost:8080
+3. `cd frontend && npm install && npm run dev` — interface sur http://localhost:3000
+
+Données de démonstration : promotion « KFOKAM48 — Promotion 2026 » (4 étudiants)
+chargée par migration Flyway, et une session de démonstration créée au démarrage
+du backend (code de présence affiché dans les logs). Test complet depuis un
+clone vierge : à refaire à l'étape 4.
