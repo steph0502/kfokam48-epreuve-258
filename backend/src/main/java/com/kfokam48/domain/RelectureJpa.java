@@ -79,4 +79,10 @@ public class RelectureJpa {
         this.commentaire = commentaire;
         this.rendueAt = maintenant;
     }
+
+    /** Correction Q10/H9 : met à jour la version courante sans toucher à la date de rendu initiale. */
+    public void corriger(Integer note, String commentaire) {
+        this.note = note;
+        this.commentaire = commentaire;
+    }
 }
