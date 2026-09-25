@@ -23,6 +23,7 @@ export interface LigneTableau {
   exercicesDeposes: number;
   /** null si aucune note reçue (RG15) — calculée côté API, jamais recalculée (F3). */
   moyenne: number | null;
+  moyenneProvisoire: boolean;
   relecturesEnAttente: number;
 }
 
@@ -34,4 +35,27 @@ export interface Etudiant {
 export interface ExerciceCree {
   id: number;
   statut: string;
+}
+
+export interface EvaluationExercice {
+  note: number;
+  commentaire: string;
+}
+
+export interface ExerciceEtudiant {
+  id: number;
+  sessionId: number;
+  lien: string;
+  statut: string;
+  noteRetenue: number | null;
+  noteProvisoire: boolean;
+  evaluations: EvaluationExercice[];
+}
+
+export interface RelectureAffectation {
+  id: number;
+  exerciceId: number;
+  auteurNom: string;
+  lien: string;
+  rendue: boolean;
 }
