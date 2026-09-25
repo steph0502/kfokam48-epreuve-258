@@ -15,4 +15,7 @@ public interface ExerciceRepository extends JpaRepository<ExerciceJpa, Long> {
     List<ExerciceJpa> findBySessionIdAndStatut(Long sessionId, String statut);
 
     Optional<ExerciceJpa> findBySessionIdAndEtudiantId(Long sessionId, Long etudiantId);
+
+    /** Tableau (Q16) : les exercices déposés par un étudiant. */
+    List<ExerciceJpa> findByEtudiantId(Long etudiantId);
 }
