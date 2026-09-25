@@ -46,6 +46,24 @@ public class SessionService {
         return sessions.save(session);
     }
 
+    /**
+     * Clôture de la session (EF7). En aval, les gardes existantes interdisent
+     * la présence (RG2), le dépôt (RG10) et la correction de note (Q15) ;
+     * les exercices non relus restent visibles comme tels (RG9, Q11).
+     */
+    @Transactional
+    public SessionJpa cloturer(Long sessionId) {
+        SessionJpa session = sessions.findById(sessionId).orElseThrow(() -> new ApiException(
+                HttpStatus.NOT_FOUND, "SESSION_INCONNUE",
+                "La session " + sessionId + " n'existe pas."));
+        if (session.getClotureAt() != null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "DEJA_CLOTUREE",
+                    "Cette session est déjà clôturée.");
+        }
+        session.cloturer(Instant.now(clock));
+        return session;
+    }
+
     /** RG18 : le code doit être unique — régénération en cas de collision. */
     private String genererCodeUnique() {
         for (int i = 0; i < 20; i++) {
