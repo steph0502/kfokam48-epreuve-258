@@ -7,7 +7,7 @@ stateDiagram-v2
     [*] --> EN_ATTENTE : POST /api/exercices → 201 (EF3)
 
     EN_ATTENTE --> EN_ATTENTE : lien remplacé (EF9, RG11, Q13)
-    EN_ATTENTE --> ASSIGNE : relecteur assigné parmi les présents ≠ auteur (EF4, RG6)
+    EN_ATTENTE --> ASSIGNE : au moins un des deux relecteurs assigné parmi les présents ≠ auteur (EF4, RG6)
 
     note right of EN_ATTENTE
         Aucun autre étudiant présent (H3) :
@@ -17,7 +17,8 @@ stateDiagram-v2
     end note
 
     ASSIGNE --> ASSIGNE : lien remplacé (EF9, RG11 — la relecture n'est pas rendue)
-    ASSIGNE --> RELU : POST /api/relectures/{id} → 200 (EF5, création initiale)
+    ASSIGNE --> ASSIGNE : premier POST rendu → note provisoire (RG19)
+    ASSIGNE --> RELU : deux POST rendus → moyenne des notes (EF5, RG19)
 
     note right of ASSIGNE
         Contrôles au rendu :

@@ -12,6 +12,7 @@ sequenceDiagram
     participant C as PresenceController
     participant S as PresenceService
     participant R as SessionRepository
+    participant X as ExerciceService
 
     E->>F: saisit le code + choisit son nom
     F->>C: POST /api/presences { code, etudiantId }
@@ -44,11 +45,17 @@ sequenceDiagram
         S->>S: save(Presence{ source: ETUDIANT })
         S-->>C: Presence créée
         C-->>F: 201 { id, sessionId, etudiantId, source: "ETUDIANT" }
+        S->>X: retenterAssignations(sessionId)
+        X->>X: compléter les affectations manquantes
         F-->>E: confirmation « présence enregistrée »
     end
 ```
 
 **Points de cohérence vérifiés :**
+
+- `findByCode` verrouille la session pendant l’enregistrement de présence ; après chaque nouvelle présence, les affectations manquantes des exercices non `RELU` sont complétées. Les deux relecteurs sont distincts de l’auteur et l’un de l’autre (RG4–RG6, RG14).
+
+- Après chaque présence, `ExerciceService` complète les affectations manquantes des exercices non `RELU` ; le premier candidat ne peut être l’auteur, le second ne peut être ni l’auteur ni le premier relecteur (RG4–RG6, RG14).
 
 - Les quatre erreurs passent toutes par le `@RestControllerAdvice` (B4) : format `{code, message}` garanti, aucune stack trace.
 - L'ordre des vérifications dans le service : existence du code → expiration (RG1) → clôture (RG2) → unicité de la présence (RG16). C'est cet ordre qui rend les codes HTTP prévisibles.
