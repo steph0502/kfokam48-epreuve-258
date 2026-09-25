@@ -2,7 +2,7 @@ spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/kfokam48
+    url: jdbc:postgresql://localhost:5436/kfokam48
     username: kfokam48
     password: kfokam48
   jpa:

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -35,7 +36,8 @@ public class DonneesDemoConfig {
             String code = genererCodeUnique(jdbc, generateur);
             jdbc.update(
                     "INSERT INTO session (titre, promotion_id, code, ouverture_at, expiration_at) VALUES (?, ?, ?, ?, ?)",
-                    "Session de démonstration", 1L, code, ouverture, expiration);
+                    "Session de démonstration", 1L, code,
+                    Timestamp.from(ouverture), Timestamp.from(expiration));
             log.info("Session de démonstration créée — code de présence : {} (valable 15 minutes, RG1)", code);
         };
     }
