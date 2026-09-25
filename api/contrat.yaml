@@ -210,8 +210,10 @@ paths:
     post:
       summary: Le formateur clôture la session (EF7)
       description: |
-        Après clôture : présence refusée (RG2), dépôt refusé (RG10).
-        Les exercices non relus restent visibles comme tels (RG9, Q11).
+        Après clôture : présence refusée (RG2), dépôt refusé (RG10), correction
+        de note refusée (Q15, CORRECTION_INTERDITE). La soumission initiale d'une
+        relecture déjà assignée reste possible (H10). Les exercices non relus
+        restent visibles comme tels (RG9, Q11).
       parameters:
         - name: id
           in: path
