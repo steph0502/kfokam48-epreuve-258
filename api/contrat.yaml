@@ -102,6 +102,11 @@ paths:
   /api/relectures/{id}:
     post:
       summary: Un relecteur rend sa note et son commentaire
+      description: |
+        Création initiale de la relecture. Le 409 RELECTURE_DEJA_RENDUE concerne
+        une seconde tentative de création par cette opération. La correction
+        d'une note existante, prévue par Q10, devra être portée par une opération
+        distincte dont la validation est encore en cours (H9).
       parameters:
         - name: id
           in: path

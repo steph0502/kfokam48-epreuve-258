@@ -17,7 +17,7 @@ stateDiagram-v2
     end note
 
     ASSIGNE --> ASSIGNE : lien remplacé (EF9, RG11 — la relecture n'est pas rendue)
-    ASSIGNE --> RELU : POST /api/relectures/{id} → 200 (EF5, note entière 0-20)
+    ASSIGNE --> RELU : POST /api/relectures/{id} → 200 (EF5, création initiale)
 
     note right of ASSIGNE
         Contrôles au rendu :
@@ -25,12 +25,16 @@ stateDiagram-v2
         400 NOTE_INVALIDE (RG7)
     end note
 
-    RELU --> [*] : note définitive, pas de correction (RG8, Q15)
+    RELU --> RELU : note/commentaire corrigés avant clôture (Q10, H9, provisoire)
+    RELU --> [*] : clôture de la session, version définitive (Q15, RG8)
 
     note right of RELU
         Le relecteur relu voit la note et
         le commentaire, sans le nom du
         relecteur (RG13, Q8).
+        Une correction Q10 est possible avant
+        la clôture via une opération distincte
+        dont le contrat reste à valider.
         Le lien n'est plus remplaçable (RG11).
     end note
 ```
@@ -38,4 +42,4 @@ stateDiagram-v2
 **Règles associées :**
 
 - La clôture de la session (EF7) ne change pas le statut d'un exercice : un exercice `EN_ATTENTE` ou `ASSIGNE` reste visible comme tel dans le tableau (Q11, RG9) via `relecturesEnAttente`.
-- Transition impossible par construction : `RELU → ASSIGNE` ou `RELU → EN_ATTENTE` — la relecture rendue est définitive (RG8), le contrat renvoie `409 RELECTURE_DEJA_RENDUE`.
+- Une correction Q10 conserve le statut `RELU` et ne constitue pas une seconde création ; le `POST` imposé reste protégé par `409 RELECTURE_DEJA_RENDUE`. La validation de H9 est nécessaire avant de définir l'opération de correction et son code d'erreur après clôture.

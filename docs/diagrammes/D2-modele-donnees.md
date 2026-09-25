@@ -1,6 +1,6 @@
 # D2 — Modèle de données (classes)
 
-> Ce diagramme **correspond à la migration Flyway `V1__init.sql`** du backend.
+> Ce diagramme est le modèle cible ; il devra correspondre à la migration Flyway `V1__init.sql`, qui sera créée à l'étape suivante.
 > Toute évolution du schéma à l'étape 3 se fera dans une **nouvelle migration**
 > `V2__...` et ce diagramme sera mis à jour dans le même commit.
 
@@ -81,3 +81,4 @@ classDiagram
 - `Session.clotureAt` est `null` tant que le formateur n'a pas clôturé (Q3, Q12).
 - `TentativeCode` alimente le blocage de 2 minutes après 5 échecs (Q4, RG3) — exigence **Could** (EF12).
 - Contraintes d'unicité : `(session_id, etudiant_id)` unique sur `presence` (RG16) et sur `exercice` (RG17) ; `code` unique parmi les sessions non expirées (RG18).
+- **Q10/H9 reste provisoire** : si la correction avant clôture est confirmée, elle mettra à jour la même `Relecture` ; la migration devra alors préciser si une date de modification ou un historique de versions est nécessaire.

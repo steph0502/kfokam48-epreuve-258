@@ -1,4 +1,4 @@
-# Journal de bord — KF48-STP-001 (matricule 258)
+# Journal de bord — 258
 
 > Une entrée **par étape**, écrite **au moment où tu la termines**, pas à la fin de la journée.
 > Trois lignes suffisent. Un journal rédigé d'un bloc juste avant de soumettre se repère
@@ -14,11 +14,11 @@ Chaque entrée répond aux trois mêmes questions :
 
 ## Étape 1 — Analyse et conception
 
-**Fait :** cahier des charges (12 EF, 6 ENF, 18 RG numérotées avec sources Qx), 4 diagrammes Mermaid (D1 cas d'usage, D2 classes, D3 séquence « marquer sa présence », bonus D4 états d'un exercice), 15 issues créées avec critères d'acceptation et labels Must/Should/Could, contrat d'API complété (5 opérations imposées intactes + 6 ajoutées), squelette du dépôt posé. Jalon `[JALON] analyse` poussé.
+**Fait :** cahier des charges (12 EF, 6 ENF, 18 RG numérotées avec sources Qx), 4 diagrammes Mermaid (D1 cas d'usage, D2 classes, D3 séquence « marquer sa présence », bonus D4 états d'un exercice), 15 issues créées avec critères d'acceptation et labels Must/Should/Could, contrat d'API complété (5 opérations imposées intactes + 6 ajoutées), squelette du dépôt posé. La contradiction Q10/Q15 est documentée comme hypothèse H9, sans code de modification. Jalon `[JALON] analyse` poussé.
 
-**Bloqué :** ~25 min sur le tranchage Q10/Q15 : Q10 autorise le relecteur à corriger sa note, Q15 la déclare définitive une fois envoyée. Tranché en faveur de **Q15 (RG8)** : le contrat d'API imposé renvoie déjà `409 RELECTURE_DEJA_RENDUE`, le contredire coûterait les points de conformité — notez que le modèle d'entrée du sujet tranche l'inverse, mon argumentaire est dans la section 7 du cahier des charges. Trou repéré aussi : le blocage après 5 erreurs (Q4) n'a aucun endpoint dans le contrat (hypothèse H1, priorité Could), et un étudiant seul présent rend l'assignation impossible (hypothèse H3 → RG14).
+**Bloqué :** ~25 min sur le tranchage Q10/Q15 : Q10 autorise le relecteur à corriger sa note jusqu'à la clôture, tandis que Q15 la déclare définitive dès l'envoi. Q10 est désormais prioritaire : le `409 RELECTURE_DEJA_RENDUE` est interprété comme le refus d'une seconde création par le POST imposé, pas comme l'interdiction absolue d'une opération de correction distincte. L'opération de correction et l'identité du relecteur restent à valider (H9) ; aucun code de modification ne sera écrit avant cette confirmation. Trou repéré aussi : le blocage après 5 erreurs (Q4) n'a aucun endpoint dans le contrat (hypothèse H1, priorité Could), et un étudiant seul présent rend l'assignation impossible (hypothèse H3 → RG14).
 
-**IA :** l'IA a produit le premier jet du cahier des charges, des diagrammes, du contrat complété et du découpage en issues. Vérifié en relisant chaque exigence et chaque règle contre CLIENT.md (chaque RG cite sa source Qx), en contrôlant la cohérence D2 ↔ migrations prévues et D3 ↔ codes HTTP du contrat, et en cherchant moi-même contradictions et trous avant de comparer avec ce que l'IA en disait.
+**IA :** l'IA a produit le premier jet du cahier des charges, des diagrammes, du contrat complété et du découpage en issues. Vérifié en relisant chaque exigence et chaque règle contre CLIENT.md (chaque RG cite sa source Qx), en confrontant Q10/Q15 au contrat imposé et au modèle de l'épreuve, en contrôlant la cohérence D2 ↔ migrations prévues et D3 ↔ codes HTTP du contrat, et en cherchant moi-même contradictions et trous avant de comparer avec ce que l'IA en disait.
 
 ---
 
