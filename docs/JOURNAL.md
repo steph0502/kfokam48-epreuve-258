@@ -46,11 +46,11 @@ Chaque entrée répond aux trois mêmes questions :
 
 ## Étape 4 — Version finale
 
-**Fait :**
+**Fait :** synchronisation de `main` après la fusion de la PR #28. README racine et guide frontend actualisés ; `CHANGELOG.md` préparé au format Keep a Changelog pour la v1.0.0. Backlog restant vérifié sur GitHub : #7 et #8 Should, #11 Could. Test depuis un clone temporaire propre : Flyway applique V1–V3, l’API démarre et retourne les quatre étudiants de démonstration, la route `/relecteur` répond 200.
 
-**Bloqué :**
+**Bloqué :** le port 5436 et le nom du conteneur PostgreSQL étaient déjà utilisés sur le poste ; le clone de test a été isolé sur le port 55436, sans toucher au service existant. Le port 3000 étant également occupé, le serveur Next de test a utilisé le port 43000.
 
-**IA :**
+**IA :** l’IA a mis à jour le guide et le changelog après inspection de la configuration réelle. Vérifications : critères de l’issue #15 et labels des issues ouvertes relus sur GitHub ; commandes vérifiées depuis le clone temporaire (`npm ci`, lancement Next, démarrage Spring, endpoint étudiants et `/relecteur`). Aucun commit ni push effectué.
 
 ---
 
