@@ -15,6 +15,7 @@ export default function RelecteurPage() {
   const [etudiants, setEtudiants] = useState<Etudiant[]>([]);
   const [etudiantId, setEtudiantId] = useState<number | null>(null);
   const [affectations, setAffectations] = useState<RelectureAffectation[]>([]);
+  const [historique, setHistorique] = useState<RelectureAffectation[]>([]);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [commentaires, setCommentaires] = useState<Record<number, string>>({});
   const [chargement, setChargement] = useState(false);
@@ -27,7 +28,12 @@ export default function RelecteurPage() {
 
   const charger = useCallback(async (id: number) => {
     try {
-      setAffectations(await api.relectures.lister(id));
+      const [enAttente, rendues] = await Promise.all([
+        api.relectures.lister(id, false),
+        api.relectures.lister(id, true),
+      ]);
+      setAffectations(enAttente);
+      setHistorique(rendues);
       setErreur(null);
     } catch (e) { setErreur(erreurLisible(e)); }
   }, []);
@@ -79,6 +85,17 @@ export default function RelecteurPage() {
                   <div className="form-group"><label className="form-label" htmlFor={`commentaire-${a.id}`}>Commentaire</label><textarea id={`commentaire-${a.id}`} className="form-input" value={commentaires[a.id] ?? ""} onChange={(e) => setCommentaires({ ...commentaires, [a.id]: e.target.value })} /></div>
                   <button className="action-btn" disabled={chargement} onClick={() => void rendre(a)}>Rendre l’évaluation</button>
                 </div>
+              </article>
+            ))}
+          </div>
+        </section>}
+        {etudiantId !== null && <section className="panel">
+          <div className="panel-head"><h2>Historique des évaluations rendues</h2><span className="status neutral">{historique.length}</span></div>
+          <div className="panel-body">
+            {historique.length === 0 ? <p className="muted">Aucune évaluation rendue pour le moment.</p> : historique.map((a) => (
+              <article className="review-card" key={a.id}>
+                <div className="panel-head"><h3>Exercice de {a.auteurNom}</h3><span className="status success">Rendue</span></div>
+                <a href={a.lien} target="_blank" rel="noreferrer">Consulter l’exercice ↗</a>
               </article>
             ))}
           </div>

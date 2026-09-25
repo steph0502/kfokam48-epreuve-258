@@ -139,6 +139,9 @@ class RelectureControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"note\":15,\"commentaire\":\"Avis 1.\"}"))
                 .andExpect(status().isOk());
+        mockMvc.perform(get("/api/relectures").param("etudiantId", String.valueOf(relecteur1)).param("rendue", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + premiere + ")]").isNotEmpty());
         mockMvc.perform(get("/api/etudiants/1/exercices"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].noteRetenue").value(org.hamcrest.Matchers.hasItem(15.0)))
