@@ -24,11 +24,11 @@ Chaque entrée répond aux trois mêmes questions :
 
 ## Étape 2 — Première version
 
-**Fait :**
+**Fait :** les 9 tickets Must livrés, un par branche et une PR par ticket (#12, #1 à #6 backend, #13/#14 frontend), chacun fermé par son merge. Backend : Spring Boot 4 + Flyway V1/V2, erreurs centralisées au format imposé, les 5 opérations du contrat + 5 ajoutées (clôture, présence formateur, lien, étudiants, correction PUT), 57 tests verts (unitaires + intégration sur H2, sans base locale). Frontend : Next.js, couche API dédiée, écrans formateur et étudiant. Tranchage H9 posé à l'étape 1 appliqué après validation : correction via PUT + identité par ?etudiantId=. Jalon v0.1 posé.
 
-**Bloqué :**
+**Bloqué :** deux vrais bugs attrapés par les tests : le seed V2 avec ids explicites ne faisait pas avancer les séquences IDENTITY (collision garantie au premier INSERT sur un clone vierge) — corrigé en insérant sans ids ; et @Max(20) sur un DTO court-circuitait RG7 avec le mauvais code d'erreur — règle rendue à sa source unique dans le service. ~30 min à chaque fois, mais les tests d'intégration sur scénario réel (EF1→EF5) ont prouvé le reste.
 
-**IA :**
+**IA :** l'IA a écrit les services, contrôleurs, migrations et écrans sous mon découpage en tickets et mes validations (commit, push, merge approuvés un par un). Vérifié en relisant chaque règle contre le CDC (codes HTTP du contrat, RG citées dans les tests), en exigeant des tests d'intégration sur scénario réel plutôt que des mocks seuls, et en traquant deux défauts qu'elle avait elle-même introduits (séquences, borne DTO). Les décisions de conception (H9, H10, tri des sessions de test) ont été tranchées par moi, pas par elle.
 
 ---
 

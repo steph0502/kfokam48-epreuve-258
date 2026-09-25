@@ -25,16 +25,16 @@ stateDiagram-v2
         400 NOTE_INVALIDE (RG7)
     end note
 
-    RELU --> RELU : note/commentaire corrigés avant clôture (Q10, H9, provisoire)
+    RELU --> RELU : note/commentaire corrigés avant clôture (Q10, H9 — PUT /api/relectures/{id})
     RELU --> [*] : clôture de la session, version définitive (Q15, RG8)
 
     note right of RELU
         Le relecteur relu voit la note et
         le commentaire, sans le nom du
         relecteur (RG13, Q8).
-        Une correction Q10 est possible avant
-        la clôture via une opération distincte
-        dont le contrat reste à valider.
+        Une correction Q10 est possible avant la clôture via
+        PUT /api/relectures/{id}?etudiantId= (H9) ; après clôture :
+        409 CORRECTION_INTERDITE (Q15).
         Le lien n'est plus remplaçable (RG11).
     end note
 ```
@@ -42,4 +42,4 @@ stateDiagram-v2
 **Règles associées :**
 
 - La clôture de la session (EF7) ne change pas le statut d'un exercice : un exercice `EN_ATTENTE` ou `ASSIGNE` reste visible comme tel dans le tableau (Q11, RG9) via `relecturesEnAttente`.
-- Une correction Q10 conserve le statut `RELU` et ne constitue pas une seconde création ; le `POST` imposé reste protégé par `409 RELECTURE_DEJA_RENDUE`. La validation de H9 est nécessaire avant de définir l'opération de correction et son code d'erreur après clôture.
+- Une correction Q10 conserve le statut `RELU` et ne constitue pas une seconde création ; le `POST` imposé reste protégé par `409 RELECTURE_DEJA_RENDUE`. H9 tranché : correction via `PUT /api/relectures/{id}?etudiantId=`, fermée après clôture (`409 CORRECTION_INTERDITE`). La soumission initiale reste possible après clôture (H10).

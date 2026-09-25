@@ -81,4 +81,4 @@ classDiagram
 - `Session.clotureAt` est `null` tant que le formateur n'a pas clôturé (Q3, Q12).
 - `TentativeCode` alimente le blocage de 2 minutes après 5 échecs (Q4, RG3) — exigence **Could** (EF12).
 - Contraintes d'unicité : `(session_id, etudiant_id)` unique sur `presence` (RG16) et sur `exercice` (RG17) ; `code` unique parmi les sessions non expirées (RG18).
-- **Q10/H9 reste provisoire** : si la correction avant clôture est confirmée, elle mettra à jour la même `Relecture` ; la migration devra alors préciser si une date de modification ou un historique de versions est nécessaire.
+- **Q10/H9 tranché** : la correction met à jour la même `Relecture` (pas d'historique de versions) ; aucune colonne supplémentaire n'était nécessaire, `rendue_at` conserve la date de la création initiale.
