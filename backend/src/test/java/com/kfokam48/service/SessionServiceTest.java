@@ -77,4 +77,38 @@ class SessionServiceTest {
 
         assertThat(session.getCode()).isEqualTo("DEF567");
     }
+
+    @Test
+    void cloture_200_date_posee_EF7() {
+        SessionJpa session = service.ouvrir("Cours", 1L);
+        when(sessions.findById(1L)).thenReturn(Optional.of(session));
+
+        SessionJpa cloturee = service.cloturer(1L);
+
+        assertThat(cloturee.getClotureAt()).isEqualTo(maintenant);
+    }
+
+    @Test
+    void double_cloture_400_DEJA_CLOTUREE() {
+        SessionJpa session = service.ouvrir("Cours", 1L);
+        when(sessions.findById(1L)).thenReturn(Optional.of(session));
+        service.cloturer(1L);
+
+        assertThatThrownBy(() -> service.cloturer(1L))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getStatus().value()).isEqualTo(400);
+                    assertThat(e.getCode()).isEqualTo("DEJA_CLOTUREE");
+                });
+    }
+
+    @Test
+    void cloture_session_inconnue_404() {
+        when(sessions.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.cloturer(99L))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getStatus().value()).isEqualTo(404);
+                    assertThat(e.getCode()).isEqualTo("SESSION_INCONNUE");
+                });
+    }
 }
