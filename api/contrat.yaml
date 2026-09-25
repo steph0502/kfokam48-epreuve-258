@@ -104,13 +104,22 @@ paths:
       summary: Un relecteur rend sa note et son commentaire
       description: |
         Création initiale de la relecture. Le 409 RELECTURE_DEJA_RENDUE concerne
-        une seconde tentative de création par cette opération. La correction
-        d'une note existante, prévue par Q10, devra être portée par une opération
-        distincte dont la validation est encore en cours (H9).
+        une seconde tentative de création par cette opération.
+        H9 (tranché) : le corps reste exactement {note, commentaire} ; l'identité
+        du relecteur transite par le paramètre de requête etudiantId, à l'image
+        de GET /api/relectures?etudiantId=.
+        H10 : la soumission initiale reste possible après la clôture (les dépôts
+        tardifs sont tolérés par Q12 et les relectures en attente restent visibles
+        par Q11 — la relecture d'un exercice assigné doit pouvoir aboutir).
       parameters:
         - name: id
           in: path
           required: true
+          schema: { type: integer, format: int64 }
+        - name: etudiantId
+          in: query
+          required: true
+          description: Identité du relecteur (H9) — contrôles RG4 et RG6.
           schema: { type: integer, format: int64 }
       requestBody:
         required: true
@@ -125,8 +134,42 @@ paths:
       responses:
         "200": { description: Relecture enregistrée }
         "400": { $ref: "#/components/responses/Erreur" }   # NOTE_INVALIDE
-        "403": { $ref: "#/components/responses/Erreur" }   # AUTO_RELECTURE
+        "403": { $ref: "#/components/responses/Erreur" }   # AUTO_RELECTURE · RELECTEUR_NON_ASSIGNE
+        "404": { $ref: "#/components/responses/Erreur" }   # RELECTURE_INCONNUE (ajouté)
         "409": { $ref: "#/components/responses/Erreur" }   # RELECTURE_DEJA_RENDUE
+
+    put:
+      summary: Le relecteur corrige sa note et son commentaire (Q10, H9)
+      description: |
+        Opération ajoutée (décision provisoire Q10) : correction de la version
+        courante tant que la session n'est pas clôturée ; après clôture, la
+        relecture est définitive (Q15) → 409 CORRECTION_INTERDITE.
+        L'identité du relecteur transite par etudiantId (H9), comme sur le POST.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: etudiantId
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note, commentaire]
+              properties:
+                note: { type: integer, minimum: 0, maximum: 20 }
+                commentaire: { type: string }
+      responses:
+        "200": { description: Relecture corrigée }
+        "400": { $ref: "#/components/responses/Erreur" }   # NOTE_INVALIDE
+        "403": { $ref: "#/components/responses/Erreur" }   # AUTO_RELECTURE · RELECTEUR_NON_ASSIGNE
+        "404": { $ref: "#/components/responses/Erreur" }   # RELECTURE_INCONNUE
+        "409": { $ref: "#/components/responses/Erreur" }   # CORRECTION_INTERDITE · RELECTURE_NON_RENDUE
 
   /api/tableau:
     get:

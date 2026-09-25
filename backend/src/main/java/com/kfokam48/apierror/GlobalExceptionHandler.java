@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
@@ -32,6 +33,13 @@ public class GlobalExceptionHandler {
                 .map(e -> e.getField() + " : " + e.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         return ResponseEntity.badRequest().body(new ApiError("REQUETE_INVALIDE", message));
+    }
+
+    /** Paramètre de requête manquant (ex. etudiantId sur POST /api/relectures/{id}). */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> parametreManquant(MissingServletRequestParameterException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ApiError("REQUETE_INVALIDE", "Paramètre manquant : " + ex.getParameterName() + "."));
     }
 
     /** JSON illisible ou champ de type inattendu. */
