@@ -3,9 +3,12 @@ package com.kfokam48.web;
 import com.kfokam48.apierror.ApiException;
 import com.kfokam48.repository.EtudiantRepository;
 import com.kfokam48.repository.PromotionRepository;
+import com.kfokam48.service.EtudiantExerciceService;
+import com.kfokam48.web.dto.EtudiantExerciceDto;
 import com.kfokam48.web.dto.EtudiantDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,10 +24,18 @@ public class EtudiantController {
 
     private final PromotionRepository promotions;
     private final EtudiantRepository etudiants;
+    private final EtudiantExerciceService exercicesEtudiant;
 
-    public EtudiantController(PromotionRepository promotions, EtudiantRepository etudiants) {
+    public EtudiantController(PromotionRepository promotions, EtudiantRepository etudiants,
+                              EtudiantExerciceService exercicesEtudiant) {
         this.promotions = promotions;
         this.etudiants = etudiants;
+        this.exercicesEtudiant = exercicesEtudiant;
+    }
+
+    @GetMapping("/api/etudiants/{id}/exercices")
+    public List<EtudiantExerciceDto> exercices(@PathVariable Long id) {
+        return exercicesEtudiant.lire(id);
     }
 
     @GetMapping("/api/etudiants")

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 
 /**
  * Tableau récapitulatif du formateur (EF6, Q16) : par étudiant de la promotion,
@@ -54,20 +54,28 @@ public class TableauService {
 
     private TableauLigneDto ligne(EtudiantJpa etudiant) {
         List<ExerciceJpa> deposés = exercices.findByEtudiantId(etudiant.getId());
-        List<Integer> notesRecues = deposés.stream()
-                .map(exercice -> relectures.findByExerciceId(exercice.getId()))
-                .flatMap(Optional::stream)
-                .filter(RelectureJpa::estRendue) // une relecture non rendue n'a pas de note
-                .map(RelectureJpa::getNote)
-                .toList();
-        Double moyenne = notesRecues.isEmpty() ? null // RG15 : null si aucune note
-                : notesRecues.stream().mapToInt(Integer::intValue).average().orElse(0.0);
+        List<Double> notesRetenues = new ArrayList<>();
+        boolean moyenneProvisoire = false;
+        for (ExerciceJpa exercice : deposés) {
+            List<Integer> notesExercice = relectures
+                    .findByExerciceIdOrderByNumeroRelecteurAsc(exercice.getId()).stream()
+                    .filter(RelectureJpa::estRendue)
+                    .map(RelectureJpa::getNote)
+                    .toList();
+            if (!notesExercice.isEmpty()) {
+                notesRetenues.add(notesExercice.stream().mapToInt(Integer::intValue).average().orElse(0.0));
+                moyenneProvisoire |= notesExercice.size() == 1;
+            }
+        }
+        Double moyenne = notesRetenues.isEmpty() ? null // RG15 : null sans note reçue
+                : notesRetenues.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
         return new TableauLigneDto(
                 etudiant.getId(),
                 etudiant.getNom(),
                 presences.countByEtudiantId(etudiant.getId()),
                 deposés.size(),
                 moyenne,
+                moyenneProvisoire,
                 relectures.countByRelecteurIdAndRendueAtIsNull(etudiant.getId()));
     }
 }

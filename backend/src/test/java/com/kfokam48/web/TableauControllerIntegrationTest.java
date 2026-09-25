@@ -97,7 +97,7 @@ class TableauControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         long exerciceId = Long.parseLong(valeurJson(depot.getResponse().getContentAsString(), "id"));
-        long relectureId = jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ?", Long.class, exerciceId);
+        long relectureId = jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ? ORDER BY numero_relecteur LIMIT 1", Long.class, exerciceId);
 
         // EF5 : le pair rend sa relecture (note 12).
         mockMvc.perform(post("/api/relectures/" + relectureId + "?etudiantId=" + pair)

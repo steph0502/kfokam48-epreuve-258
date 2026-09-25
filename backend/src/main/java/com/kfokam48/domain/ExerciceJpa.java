@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * Exercice déposé (D2). Cycle de vie (D4) : EN_ATTENTE → ASSIGNE → RELU.
+ * Exercice déposé (D2). RELU signifie que les deux pairs ont rendu.
  * Le couple (session, étudiant) est unique au niveau SQL (RG17).
  */
 @Entity

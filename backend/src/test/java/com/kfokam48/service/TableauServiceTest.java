@@ -84,7 +84,7 @@ class TableauServiceTest {
         when(etudiants.findByPromotionIdOrderByNomAsc(1L)).thenReturn(List.of(alice));
         when(presences.countByEtudiantId(1L)).thenReturn(2L);
         when(exercices.findByEtudiantId(1L)).thenReturn(List.of(exercice(10L, 1L)));
-        when(relectures.findByExerciceId(10L)).thenReturn(Optional.empty()); // pas encore relue
+        when(relectures.findByExerciceIdOrderByNumeroRelecteurAsc(10L)).thenReturn(List.of()); // pas encore relue
         when(relectures.countByRelecteurIdAndRendueAtIsNull(1L)).thenReturn(1L);
 
         List<TableauLigneDto> lignes = service.tableau(1L);
@@ -107,13 +107,14 @@ class TableauServiceTest {
         RelectureJpa rendue = new RelectureJpa(20L, 3L);
         rendue.rendre(10, "ok", T0);
         RelectureJpa enAttente = new RelectureJpa(21L, 4L); // assignée mais non rendue → ignorée
-        when(relectures.findByExerciceId(20L)).thenReturn(Optional.of(rendue));
-        when(relectures.findByExerciceId(21L)).thenReturn(Optional.of(enAttente));
+        when(relectures.findByExerciceIdOrderByNumeroRelecteurAsc(20L)).thenReturn(List.of(rendue));
+        when(relectures.findByExerciceIdOrderByNumeroRelecteurAsc(21L)).thenReturn(List.of(enAttente));
         when(relectures.countByRelecteurIdAndRendueAtIsNull(2L)).thenReturn(0L);
 
         TableauLigneDto ligne = service.tableau(1L).get(0);
 
         assertThat(ligne.moyenne()).isEqualTo(10.0); // seule la relecture RENDUE compte
+        assertThat(ligne.moyenneProvisoire()).isTrue(); // un seul avis pour l'exercice noté
     }
 
     @Test
