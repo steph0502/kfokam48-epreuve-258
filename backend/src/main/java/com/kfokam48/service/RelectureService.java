@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Rendu d'une relecture (EF5) et correction (Q10, H9 — décision provisoire).
@@ -59,7 +60,7 @@ public class RelectureService {
                     "Cette relecture a déjà été rendue ; passez par la correction tant que la session est ouverte (RG8).");
         }
         relecture.rendre(note, commentaire.trim(), Instant.now(clock));
-        marquerExerciceRelu(relecture);                           // D4 : ASSIGNE → RELU
+        marquerExerciceReluSiComplet(relecture);                 // RELU après les deux rendus
         return relecture;
     }
 
@@ -115,11 +116,11 @@ public class RelectureService {
         }
     }
 
-    private void marquerExerciceRelu(RelectureJpa relecture) {
-        exercices.findById(relecture.getExerciceId()).ifPresent(exercice -> {
-            if (ExerciceJpa.Statut.ASSIGNE.name().equals(exercice.getStatut())) {
-                exercice.marquerRelu();
-            }
-        });
+    private void marquerExerciceReluSiComplet(RelectureJpa relecture) {
+        List<RelectureJpa> affectations = relectures
+                .findByExerciceIdOrderByNumeroRelecteurAsc(relecture.getExerciceId());
+        if (affectations.size() == 2 && affectations.stream().allMatch(RelectureJpa::estRendue)) {
+            exercices.findById(relecture.getExerciceId()).ifPresent(ExerciceJpa::marquerRelu);
+        }
     }
 }

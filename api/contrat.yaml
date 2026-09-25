@@ -189,13 +189,14 @@ paths:
                 items:
                   type: object
                   required:
-                    [etudiantId, nom, presences, exercicesDeposes, moyenne, relecturesEnAttente]
+                    [etudiantId, nom, presences, exercicesDeposes, moyenne, moyenneProvisoire, relecturesEnAttente]
                   properties:
                     etudiantId: { type: integer, format: int64 }
                     nom: { type: string }
                     presences: { type: integer }
                     exercicesDeposes: { type: integer }
                     moyenne: { type: number, nullable: true }
+                    moyenneProvisoire: { type: boolean, description: Vrai si au moins une note retenue provient d’un seul avis rendu }
                     relecturesEnAttente: { type: integer }
         "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
 
@@ -331,8 +332,9 @@ paths:
     get:
       summary: Les exercices d'un étudiant avec leurs notes reçues (EF10, Q8)
       description: |
-        Renvoie la note et le commentaire reçus, JAMAIS l'identité
-        du relecteur (RG13).
+        Renvoie chaque avis rendu sans identité de relecteur, la note retenue
+        (moyenne des avis ou note unique provisoire) et l'indicateur de
+        provisoire. Les noms/identifiants des relecteurs ne sont jamais exposés (RG13, RG19).
       parameters:
         - name: id
           in: path
@@ -347,14 +349,22 @@ paths:
                 type: array
                 items:
                   type: object
-                  required: [id, sessionId, lien, statut, note, commentaire]
+                  required: [id, sessionId, lien, statut, noteRetenue, noteProvisoire, evaluations]
                   properties:
                     id: { type: integer, format: int64 }
                     sessionId: { type: integer, format: int64 }
                     lien: { type: string }
                     statut: { type: string }
-                    note: { type: integer, minimum: 0, maximum: 20, nullable: true }
-                    commentaire: { type: string, nullable: true }
+                    noteRetenue: { type: number, minimum: 0, maximum: 20, nullable: true }
+                    noteProvisoire: { type: boolean }
+                    evaluations:
+                      type: array
+                      items:
+                        type: object
+                        required: [note, commentaire]
+                        properties:
+                          note: { type: integer, minimum: 0, maximum: 20 }
+                          commentaire: { type: string }
         "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
 
   /api/relectures:
@@ -363,7 +373,8 @@ paths:
       description: |
         Liste des exercices dont l'étudiant est le relecteur assigné.
         `rendue=false` donne les relectures en attente (à faire),
-        `rendue=true` l'historique de celles déjà rendues.
+        `rendue=true` l'historique de celles déjà rendues. Chaque affectation correspond
+        à un avis indépendant ; les deux affectations d'un exercice portent des IDs distincts.
       parameters:
         - name: etudiantId
           in: query

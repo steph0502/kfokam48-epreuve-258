@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,7 +76,7 @@ class RelectureControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         long exerciceId = Long.parseLong(valeurJson(depot.getResponse().getContentAsString(), "id"));
-        return jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ?", Long.class, exerciceId);
+        return jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ? ORDER BY numero_relecteur LIMIT 1", Long.class, exerciceId);
     }
 
     private long relecteurDe(long relectureId) {
@@ -83,32 +84,80 @@ class RelectureControllerIntegrationTest {
     }
 
     @Test
-    void rendre_200_exercice_RELU_puis_seconde_soumission_409_RG8() throws Exception {
+    void deux_relecteurs_distincts_rendent_avant_statut_RELU_et_doublon_409() throws Exception {
         long sessionId = sessionAvecPresences(1L, 2L, 3L);
-        long relectureId = deposerEtLireRelecture(sessionId, 1L, "https://gitlab.com/a/projet");
-        long relecteur = relecteurDe(relectureId);
+        long premiere = deposerEtLireRelecture(sessionId, 1L, "https://gitlab.com/a/projet");
+        long exerciceId = jdbc.queryForObject("SELECT exercice_id FROM relecture WHERE id = ?", Long.class, premiere);
+        long seconde = jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ? AND numero_relecteur = 2", Long.class, exerciceId);
+        long relecteur1 = relecteurDe(premiere);
+        long relecteur2 = relecteurDe(seconde);
+        assertThat(relecteur1).isNotEqualTo(relecteur2).isNotEqualTo(1L);
 
-        mockMvc.perform(post("/api/relectures/" + relectureId + "?etudiantId=" + relecteur)
+        mockMvc.perform(post("/api/relectures/" + premiere + "?etudiantId=" + relecteur1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"note\":15,\"commentaire\":\"Bon travail.\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(relectureId))
+                .andExpect(jsonPath("$.id").value(premiere))
                 .andExpect(jsonPath("$.note").value(15))
                 .andExpect(jsonPath("$.commentaire").value("Bon travail."))
                 .andExpect(jsonPath("$.rendueAt").isString())
-                // RG13 : la réponse ne révèle jamais l'identité du relecteur.
                 .andExpect(jsonPath("$.[?(@.relecteurId)]").isEmpty());
+        assertThat(jdbc.queryForObject("SELECT statut FROM exercice WHERE id = ?", String.class, exerciceId))
+                .isEqualTo("ASSIGNE");
 
-        String statut = jdbc.queryForObject(
-                "SELECT statut FROM exercice WHERE id = (SELECT exercice_id FROM relecture WHERE id = ?)",
-                String.class, relectureId);
-        assertThat(statut).isEqualTo("RELU");
+        mockMvc.perform(post("/api/relectures/" + seconde + "?etudiantId=" + relecteur2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"note\":17,\"commentaire\":\"Bien réalisé.\"}"))
+                .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT statut FROM exercice WHERE id = ?", String.class, exerciceId))
+                .isEqualTo("RELU");
 
-        mockMvc.perform(post("/api/relectures/" + relectureId + "?etudiantId=" + relecteur)
+        mockMvc.perform(post("/api/relectures/" + premiere + "?etudiantId=" + relecteur1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"note\":18,\"commentaire\":\"Seconde tentative.\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("RELECTURE_DEJA_RENDUE"));
+    }
+
+    @Test
+    void avis_deuxieme_provisoire_puis_moyenne_et_listes_anonymisees_RG19() throws Exception {
+        long sessionId = sessionAvecPresences(1L, 2L, 3L);
+        long premiere = deposerEtLireRelecture(sessionId, 1L, "https://gitlab.com/a/projet");
+        long exerciceId = jdbc.queryForObject("SELECT exercice_id FROM relecture WHERE id = ?", Long.class, premiere);
+        long seconde = jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ? AND numero_relecteur = 2", Long.class, exerciceId);
+        long relecteur1 = relecteurDe(premiere);
+        long relecteur2 = relecteurDe(seconde);
+
+        mockMvc.perform(get("/api/relectures").param("etudiantId", String.valueOf(relecteur1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + premiere + ")]").isNotEmpty());
+        mockMvc.perform(get("/api/etudiants/1/exercices"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")]").isNotEmpty());
+
+        mockMvc.perform(post("/api/relectures/" + premiere + "?etudiantId=" + relecteur1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"note\":15,\"commentaire\":\"Avis 1.\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/relectures").param("etudiantId", String.valueOf(relecteur1)).param("rendue", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + premiere + ")]").isNotEmpty());
+        mockMvc.perform(get("/api/etudiants/1/exercices"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].noteRetenue").value(org.hamcrest.Matchers.hasItem(15.0)))
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].noteProvisoire").value(org.hamcrest.Matchers.hasItem(true)))
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].evaluations[0].commentaire").value(org.hamcrest.Matchers.hasItem("Avis 1.")))
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].evaluations[0].relecteurId").doesNotExist());
+
+        mockMvc.perform(post("/api/relectures/" + seconde + "?etudiantId=" + relecteur2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"note\":17,\"commentaire\":\"Avis 2.\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/etudiants/1/exercices"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].noteRetenue").value(org.hamcrest.Matchers.hasItem(16.0)))
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].noteProvisoire").value(org.hamcrest.Matchers.hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id == " + exerciceId + ")].evaluations[1].note").value(org.hamcrest.Matchers.hasItem(17)));
     }
 
     @Test

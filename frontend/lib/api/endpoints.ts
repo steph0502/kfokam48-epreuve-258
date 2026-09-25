@@ -1,5 +1,5 @@
 import { requete } from "./client";
-import type { Etudiant, ExerciceCree, LigneTableau, Presence, SessionCreee } from "./types";
+import type { Etudiant, ExerciceCree, ExerciceEtudiant, LigneTableau, Presence, RelectureAffectation, SessionCreee } from "./types";
 
 /**
  * Endpoints typés de l'API (F3) : chaque écran consomme ces fonctions,
@@ -38,5 +38,17 @@ export const api = {
     /** EF11 — liste des étudiants pour choisir son nom (Q1). */
     lister: (promotionId: number) =>
       requete<Etudiant[]>("/api/etudiants", { parametres: { promotionId: String(promotionId) } }),
+    exercices: (id: number) => requete<ExerciceEtudiant[]>(`/api/etudiants/${id}/exercices`),
+  },
+
+  relectures: {
+    lister: (etudiantId: number, rendue = false) =>
+      requete<RelectureAffectation[]>("/api/relectures", {
+        parametres: { etudiantId: String(etudiantId), rendue: String(rendue) },
+      }),
+    rendre: (id: number, etudiantId: number, note: number, commentaire: string) =>
+      requete<void>(`/api/relectures/${id}?etudiantId=${etudiantId}`, {
+        method: "POST", corps: { note, commentaire },
+      }),
   },
 };

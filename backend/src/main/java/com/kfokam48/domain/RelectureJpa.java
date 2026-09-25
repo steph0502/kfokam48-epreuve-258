@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * Relecture (D2). Une seule par exercice (RG6, unicité SQL). note/commentaire/
+ * Relecture (D2). Deux affectations maximum par exercice (RG5/RG6, unicité SQL). note/commentaire/
  * rendueAt restent null tant que le relecteur n'a pas rendu (EF4 → EF5).
  * Le relecteur est un étudiant (pas d'entité Relecteur — décision §2 du CDC, Q7).
  */
@@ -28,6 +28,9 @@ public class RelectureJpa {
     @Column(name = "relecteur_id", nullable = false)
     private Long relecteurId;
 
+    @Column(name = "numero_relecteur", nullable = false)
+    private Integer numeroRelecteur;
+
     @Column
     private Integer note;
 
@@ -42,8 +45,13 @@ public class RelectureJpa {
     }
 
     public RelectureJpa(Long exerciceId, Long relecteurId) {
+        this(exerciceId, relecteurId, 1);
+    }
+
+    public RelectureJpa(Long exerciceId, Long relecteurId, Integer numeroRelecteur) {
         this.exerciceId = exerciceId;
         this.relecteurId = relecteurId;
+        this.numeroRelecteur = numeroRelecteur;
     }
 
     public Long getId() {
@@ -56,6 +64,10 @@ public class RelectureJpa {
 
     public Long getRelecteurId() {
         return relecteurId;
+    }
+
+    public Integer getNumeroRelecteur() {
+        return numeroRelecteur;
     }
 
     public Integer getNote() {

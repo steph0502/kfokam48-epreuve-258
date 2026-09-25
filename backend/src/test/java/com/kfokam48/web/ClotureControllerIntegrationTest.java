@@ -109,7 +109,7 @@ class ClotureControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         long exerciceId = Long.parseLong(valeurJson(depot.getResponse().getContentAsString(), "id"));
-        return jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ?", Long.class, exerciceId);
+        return jdbc.queryForObject("SELECT id FROM relecture WHERE exercice_id = ? ORDER BY numero_relecteur LIMIT 1", Long.class, exerciceId);
     }
 
     private long relecteurDe(long relectureId) {

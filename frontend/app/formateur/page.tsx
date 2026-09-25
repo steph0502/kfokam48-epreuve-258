@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/ApiError";
 import type { LigneTableau, SessionCreee } from "@/lib/api/types";
+import { Topbar } from "../_components/Topbar";
 
 const PROMOTION_DEMO = 1;
 
@@ -66,72 +67,135 @@ export default function FormateurPage() {
   }
 
   return (
-    <main>
-      <h1>Espace formateur</h1>
-      <p>
-        <Link href="/etudiant">Aller à l&apos;espace étudiant →</Link>
-      </p>
+    <>
+      <Topbar active="formateur" />
+      <main className="container">
+        <div className="page-head">
+          <div>
+            <h1>Espace formateur</h1>
+            <p>Ouvrez une session, projetez le code, suivez la promotion en direct.</p>
+          </div>
+          <Link href="/etudiant" className="ghost-btn">
+            Espace étudiant →
+          </Link>
+        </div>
 
-      <section>
-        <h2>Ouvrir une session</h2>
-        <label>
-          Titre du cours :{" "}
-          <input value={titre} onChange={(e) => setTitre(e.target.value)} />
-        </label>{" "}
-        <button onClick={ouvrirSession} disabled={chargement || titre.trim() === ""}>
-          Ouvrir et obtenir le code
-        </button>
-      </section>
+        {erreur && (
+          <div className="banner banner-error" role="alert">
+            {erreur}
+          </div>
+        )}
 
-      {session && (
-        <section>
-          <h2>{cloturee ? "Session clôturée" : "Session ouverte"}</h2>
-          <p>
-            Code de présence à projeter :{" "}
-            <strong style={{ fontSize: "2rem", letterSpacing: "0.3em" }}>
-              {session.code}
-            </strong>
-          </p>
-          <p>Valable jusqu&apos;à {new Date(session.expirationAt).toLocaleTimeString("fr-FR")}.</p>
-          <button onClick={cloturerSession} disabled={chargement || cloturee}>
-            Clôturer la session
-          </button>
+        <section className="panel">
+          <div className="panel-head">
+            <h2>Ouvrir une session</h2>
+          </div>
+          <div className="panel-body">
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label" htmlFor="titre">
+                  Titre du cours
+                </label>
+                <input
+                  id="titre"
+                  className="form-input"
+                  value={titre}
+                  onChange={(e) => setTitre(e.target.value)}
+                />
+              </div>
+              <button
+                className="action-btn"
+                onClick={ouvrirSession}
+                disabled={chargement || titre.trim() === ""}
+              >
+                Ouvrir et obtenir le code
+              </button>
+            </div>
+          </div>
         </section>
-      )}
 
-      {erreur && (
-        <p role="alert" style={{ color: "crimson" }}>
-          {erreur}
-        </p>
-      )}
+        {session && (
+          <section className="panel">
+            <div className="panel-head">
+              <h2>{cloturee ? "Session clôturée" : "Session ouverte"}</h2>
+              <span className={`status ${cloturee ? "neutral" : "success"}`}>
+                {cloturee ? "Clôturée" : "Ouverte"}
+              </span>
+            </div>
+            <div className="panel-body">
+              <span className="code-label">Code de présence à projeter</span>
+              <span className="code-display">{session.code}</span>
+              <p className="muted">
+                Valable jusqu&apos;à {new Date(session.expirationAt).toLocaleTimeString("fr-FR")}.
+              </p>
+              <div>
+                <button className="ghost-btn" onClick={cloturerSession} disabled={chargement || cloturee}>
+                  Clôturer la session
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
-      <section>
-        <h2>Tableau récapitulatif</h2>
-        <button onClick={() => void rafraichirTableau()}>Rafraîchir</button>
-        <table border={1} cellPadding={6}>
-          <thead>
-            <tr>
-              <th>Étudiant</th>
-              <th>Présences</th>
-              <th>Exercices déposés</th>
-              <th>Moyenne /20</th>
-              <th>Relectures en attente</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableau.map((ligne) => (
-              <tr key={ligne.etudiantId}>
-                <td>{ligne.nom}</td>
-                <td>{ligne.presences}</td>
-                <td>{ligne.exercicesDeposes}</td>
-                {/* La moyenne vient de l'API (RG15) — jamais recalculée ici (F3). */}
-                <td>{ligne.moyenne === null ? "—" : ligne.moyenne.toFixed(1)}</td>
-                <td>{ligne.relecturesEnAttente}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </main>
+        <section className="panel">
+          <div className="panel-head">
+            <h2>Tableau récapitulatif</h2>
+            <button className="ghost-btn" onClick={() => void rafraichirTableau()}>
+              Rafraîchir
+            </button>
+          </div>
+          <div className="table-wrap">
+            <table className="ui-table">
+              <thead>
+                <tr>
+                  <th>Étudiant</th>
+                  <th>Présences</th>
+                  <th>Exercices déposés</th>
+                  <th>Moyenne /20</th>
+                  <th>Relectures en attente</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableau.length === 0 && (
+                  <tr>
+                    <td className="empty-row" colSpan={5}>
+                      Aucune donnée pour l&apos;instant — ouvrez une session et attendez les
+                      premières présences.
+                    </td>
+                  </tr>
+                )}
+                {tableau.map((ligne) => (
+                  <tr key={ligne.etudiantId}>
+                    <td className="strong">{ligne.nom}</td>
+                    <td>{ligne.presences}</td>
+                    <td>{ligne.exercicesDeposes}</td>
+                    {/* La moyenne vient de l'API (RG15) — jamais recalculée ici (F3). */}
+                    <td>
+                      {ligne.moyenne === null ? (
+                        <span className="muted">—</span>
+                      ) : (
+                        <span className={`status ${ligne.moyenneProvisoire ? "warning" : ligne.moyenne >= 10 ? "success" : "danger"}`}>
+                          {ligne.moyenne.toFixed(1)}{ligne.moyenneProvisoire ? " · provisoire" : ""}
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      {ligne.relecturesEnAttente > 0 ? (
+                        <span className="status warning">{ligne.relecturesEnAttente}</span>
+                      ) : (
+                        <span className="muted">0</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer className="app-footer">
+        KFOKAM48 — Direction de la formation · Données de démonstration au démarrage
+      </footer>
+    </>
   );
 }

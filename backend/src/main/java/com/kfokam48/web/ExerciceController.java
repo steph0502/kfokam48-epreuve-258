@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * EF3/EF4 — POST /api/exercices {sessionId, etudiantId, lien} → 201 {id, statut}.
- * statut vaut ASSIGNE si un relecteur a pu être désigné, EN_ATTENTE sinon (RG14).
+ * statut vaut ASSIGNE si au moins un relecteur a pu être désigné, EN_ATTENTE sinon (RG14).
  * Erreurs du contrat : 400 LIEN_INVALIDE, 409 EXERCICE_DEJA_DEPOSE.
  * Aucune logique métier ici (B3).
  */

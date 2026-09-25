@@ -19,15 +19,15 @@ import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Dépôt d'exercice (EF3) et assignation du relecteur (EF4).
  * RG17 — un seul exercice par étudiant et par session (409) ;
  * RG10/Q12 — dépôt interdit après la clôture ;
- * RG4 — le relecteur n'est jamais l'auteur (pas d'auto-relecture) ;
- * RG6/RG7 — un seul relecteur, choisi au hasard parmi les présents ;
- * RG14 — si personne d'autre n'est présent, l'exercice reste EN_ATTENTE
- * et l'assignation est retentée à chaque nouvelle présence.
+ * RG4 — aucun pair ne relit son propre exercice ;
+ * RG5/RG6 — deux pairs distincts sont tirés au hasard parmi les présents ;
+ * RG14 — les affectations manquantes sont retentées à chaque nouvelle présence.
  */
 @Service
 public class ExerciceService {
@@ -54,7 +54,7 @@ public class ExerciceService {
 
     @Transactional
     public ExerciceJpa deposer(Long sessionId, Long etudiantId, String lien) {
-        SessionJpa session = sessions.findById(sessionId).orElseThrow(() -> new ApiException(
+        SessionJpa session = sessions.findByIdForUpdate(sessionId).orElseThrow(() -> new ApiException(
                 HttpStatus.BAD_REQUEST, "SESSION_INCONNUE",
                 "La session " + sessionId + " n'existe pas."));
         if (session.getClotureAt() != null) {
@@ -81,22 +81,32 @@ public class ExerciceService {
      */
     @Transactional
     public void retenterAssignations(Long sessionId) {
-        for (ExerciceJpa exercice : exercices.findBySessionIdAndStatut(sessionId, ExerciceJpa.Statut.EN_ATTENTE.name())) {
+        for (ExerciceJpa exercice : exercices.findBySessionIdAndStatutNot(
+                sessionId, ExerciceJpa.Statut.RELU.name())) {
             assignerSiPossible(exercice);
         }
     }
 
     private void assignerSiPossible(ExerciceJpa exercice) {
+        List<RelectureJpa> existantes = relectures.findByExerciceIdOrderByNumeroRelecteurAsc(exercice.getId());
+        List<Long> dejaAffectes = new ArrayList<>(existantes.stream().map(RelectureJpa::getRelecteurId).toList());
         List<Long> candidats = presences.findBySessionId(exercice.getSessionId()).stream()
                 .map(PresenceJpa::getEtudiantId)
-                .filter(id -> !id.equals(exercice.getEtudiantId())) // RG4 : l'auteur est exclu
+                .filter(id -> !id.equals(exercice.getEtudiantId())) // RG4 : l’auteur est exclu
+                .filter(id -> !dejaAffectes.contains(id)) // RG5 : pairs distincts
                 .toList();
-        if (candidats.isEmpty()) {
-            return; // RG14 : aucun autre présent — l'exercice reste EN_ATTENTE
+
+        int numero = existantes.size() + 1;
+        while (numero <= 2 && !candidats.isEmpty()) {
+            Long relecteurId = candidats.get(HASARD.nextInt(candidats.size())); // RG6 : tirage aléatoire
+            relectures.save(new RelectureJpa(exercice.getId(), relecteurId, numero));
+            dejaAffectes.add(relecteurId);
+            candidats = candidats.stream().filter(id -> !id.equals(relecteurId)).toList();
+            numero++;
         }
-        Long relecteurId = candidats.get(HASARD.nextInt(candidats.size())); // RG6, RG7
-        relectures.save(new RelectureJpa(exercice.getId(), relecteurId));
-        exercice.assigner(); // EN_ATTENTE → ASSIGNE (D4)
+        if (numero > 1) {
+            exercice.assigner(); // Au moins un pair assigné; la seconde affectation peut rester à compléter.
+        }
     }
 
     private void validerLien(String lien) {

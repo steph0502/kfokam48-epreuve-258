@@ -35,6 +35,7 @@ class RelectureServiceTest {
     private SessionRepository sessions;
     private RelectureService service;
     private RelectureJpa relecture;
+    private RelectureJpa secondeRelecture;
     private ExerciceJpa exercice;
     private SessionJpa session;
 
@@ -47,7 +48,11 @@ class RelectureServiceTest {
                 Clock.fixed(OUVERTURE, ZoneOffset.UTC));
 
         // Auteur = 2, relecteur assigné = 3, exercice ASSIGNE, session ouverte.
-        relecture = new RelectureJpa(10L, 3L);
+        relecture = new RelectureJpa(10L, 3L, 1);
+        secondeRelecture = new RelectureJpa(10L, 4L, 2);
+        secondeRelecture.rendre(13, "Avis pair.", OUVERTURE);
+        when(relectures.findByExerciceIdOrderByNumeroRelecteurAsc(10L))
+                .thenReturn(java.util.List.of(relecture, secondeRelecture));
         exercice = new ExerciceJpa(1L, 2L, "https://exemple.com/x", OUVERTURE);
         exercice.assigner();
         session = new SessionJpa("Cours", 1L, "ABC234", OUVERTURE, OUVERTURE.plus(Duration.ofMinutes(15)));
@@ -88,6 +93,13 @@ class RelectureServiceTest {
     @Test
     void relecteur_non_assigne_403() {
         echoueAvec(() -> service.rendre(7L, 4L, 10, "x"), 403, "RELECTEUR_NON_ASSIGNE");
+    }
+
+    @Test
+    void premiere_note_seule_reste_provisoire_et_exercice_ASSIGNE() {
+        when(relectures.findByExerciceIdOrderByNumeroRelecteurAsc(10L)).thenReturn(java.util.List.of(relecture));
+        service.rendre(7L, 3L, 15, "Bon travail.");
+        assertThat(exercice.getStatut()).isEqualTo(ExerciceJpa.Statut.ASSIGNE.name());
     }
 
     @Test

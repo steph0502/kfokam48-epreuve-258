@@ -11,8 +11,8 @@ public interface ExerciceRepository extends JpaRepository<ExerciceJpa, Long> {
     /** RG17 : un seul exercice par étudiant et par session. */
     boolean existsBySessionIdAndEtudiantId(Long sessionId, Long etudiantId);
 
-    /** RG14 : exercices en attente d'un relecteur, à assujettir à chaque nouvelle présence. */
-    List<ExerciceJpa> findBySessionIdAndStatut(Long sessionId, String statut);
+    /** RG14 : exercices incomplets à retenter à chaque nouvelle présence. */
+    List<ExerciceJpa> findBySessionIdAndStatutNot(Long sessionId, String statut);
 
     Optional<ExerciceJpa> findBySessionIdAndEtudiantId(Long sessionId, Long etudiantId);
 

@@ -18,7 +18,7 @@ import java.time.Instant;
  * RG1 — code expiré 15 minutes après l'ouverture (410) ;
  * RG2 — pas de présence après la clôture de la session (Q3) ;
  * RG16 — une seule présence par étudiant et par session (409).
- * Chaque nouvelle présence retente l'assignation des exercices EN_ATTENTE (RG14).
+ * Chaque nouvelle présence retente les affectations manquantes des exercices non `RELU` (RG14).
  */
 @Service
 public class PresenceService {

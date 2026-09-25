@@ -19,7 +19,7 @@ graph LR
         UC7(["Remplacer son lien (EF9)"])
         UC8(["Consulter sa note et<br/>son commentaire (EF10)"])
         UC9(["Choisir son nom dans<br/>la liste (EF11)"])
-        UC10(["Rendre une relecture :<br/>note 0-20 + commentaire (EF5)"])
+        UC10(["Rendre une relecture :<br/>deux avis, note provisoire puis moyenne (EF5)"])
     end
 
     FORMATEUR --> UC1

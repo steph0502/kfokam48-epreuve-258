@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface RelectureRepository extends JpaRepository<RelectureJpa, Long> {
 
-    /** RG6 : une seule relecture par exercice. */
-    boolean existsByExerciceId(Long exerciceId);
+    /** Les deux affectations possibles d’un exercice, par numéro de pair. */
+    List<RelectureJpa> findByExerciceIdOrderByNumeroRelecteurAsc(Long exerciceId);
 
     /** EF5 : retrouver la relecture visée par POST /api/relectures/{id}. */
     Optional<RelectureJpa> findById(Long id);
@@ -19,9 +19,11 @@ public interface RelectureRepository extends JpaRepository<RelectureJpa, Long> {
 
     List<RelectureJpa> findByRelecteurIdAndRendueAtIsNull(Long relecteurId);
 
+    List<RelectureJpa> findByRelecteurIdAndRendueAtIsNotNull(Long relecteurId);
+
     /** Tableau (Q16) : combien de relectures l'étudiant doit encore faire. */
     long countByRelecteurIdAndRendueAtIsNull(Long relecteurId);
 
-    /** La relecture d'un exercice — unique par RG6. */
+    /** Une ancienne affectation unique peut être recherchée pour les appels existants. */
     Optional<RelectureJpa> findByExerciceId(Long exerciceId);
 }

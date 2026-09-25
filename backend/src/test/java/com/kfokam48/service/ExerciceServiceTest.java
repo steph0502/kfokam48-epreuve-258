@@ -59,7 +59,7 @@ class ExerciceServiceTest {
                 Clock.fixed(OUVERTURE, ZoneOffset.UTC));
 
         session = new SessionJpa("Cours", 1L, "ABC234", OUVERTURE, OUVERTURE.plus(Duration.ofMinutes(15)));
-        when(sessions.findById(1L)).thenReturn(Optional.of(session));
+        when(sessions.findByIdForUpdate(1L)).thenReturn(Optional.of(session));
         when(etudiants.existsById(anyLong())).thenReturn(true);
         when(exercices.save(any(ExerciceJpa.class))).thenAnswer(inv -> inv.getArgument(0));
         when(relectures.save(any(RelectureJpa.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -84,15 +84,16 @@ class ExerciceServiceTest {
 
     @Test
     void depot_avec_un_autre_present_assigne_le_relecteur_EF4_RG4() {
-        presents(2L, 3L); // l'auteur 2 et le pair 3
+        presents(2L, 3L, 4L); // auteur et deux pairs possibles
 
         ExerciceJpa exercice = service.deposer(1L, 2L, "https://gitlab.com/a/projet");
 
         assertThat(exercice.getStatut()).isEqualTo(ExerciceJpa.Statut.ASSIGNE.name());
         org.mockito.ArgumentCaptor<RelectureJpa> capteur =
                 org.mockito.ArgumentCaptor.forClass(RelectureJpa.class);
-        verify(relectures).save(capteur.capture());
-        assertThat(capteur.getValue().getRelecteurId()).isEqualTo(3L); // jamais l'auteur (RG4)
+        verify(relectures, org.mockito.Mockito.times(2)).save(capteur.capture());
+        assertThat(capteur.getAllValues()).extracting(RelectureJpa::getNumeroRelecteur).containsExactly(1, 2);
+        assertThat(capteur.getAllValues()).extracting(RelectureJpa::getRelecteurId).containsExactlyInAnyOrder(3L, 4L);
     }
 
     @Test
@@ -133,18 +134,25 @@ class ExerciceServiceTest {
     @Test
     void retente_assignation_quand_un_second_present_arrive_RG14() {
         ExerciceJpa enAttente = new ExerciceJpa(1L, 2L, "https://exemple.com/x", OUVERTURE);
-        when(exercices.findBySessionIdAndStatut(1L, ExerciceJpa.Statut.EN_ATTENTE.name()))
+        when(exercices.findBySessionIdAndStatutNot(1L, ExerciceJpa.Statut.RELU.name()))
                 .thenReturn(List.of(enAttente));
+        when(relectures.findByExerciceIdOrderByNumeroRelecteurAsc(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(List.of(), List.of(), List.of(new RelectureJpa(1L, 3L, 1)));
 
         // D'abord seul présent : rien ne change.
         presents(2L);
         service.retenterAssignations(1L);
         assertThat(enAttente.getStatut()).isEqualTo(ExerciceJpa.Statut.EN_ATTENTE.name());
 
-        // Le pair 3 se présente : l'assignation a lieu (RG4, RG6, RG7).
+        // Le pair 3 se présente : première place assignée.
         presents(2L, 3L);
         service.retenterAssignations(1L);
         assertThat(enAttente.getStatut()).isEqualTo(ExerciceJpa.Statut.ASSIGNE.name());
-        verify(relectures).save(any(RelectureJpa.class));
+        presents(2L, 3L, 4L);
+        service.retenterAssignations(1L);
+        org.mockito.ArgumentCaptor<RelectureJpa> capteur = org.mockito.ArgumentCaptor.forClass(RelectureJpa.class);
+        verify(relectures, org.mockito.Mockito.times(2)).save(capteur.capture());
+        assertThat(capteur.getAllValues()).extracting(RelectureJpa::getNumeroRelecteur).containsExactly(1, 2);
+        assertThat(capteur.getAllValues()).extracting(RelectureJpa::getRelecteurId).containsExactly(3L, 4L);
     }
 }
